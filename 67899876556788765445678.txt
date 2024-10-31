@@ -290,7 +290,7 @@ TextLabel.BorderSizePixel = 0
 TextLabel.Size = UDim2.new(1, 0, 1, 0)
 TextLabel.ZIndex = 2
 TextLabel.Font = Enum.Font.Fantasy
-TextLabel.Text = "     HunterHub v4.7.3     "
+TextLabel.Text = "     HunterHub v4.7.5     "
 TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 TextLabel.TextScaled = true
 TextLabel.TextSize = 14.000
@@ -3941,7 +3941,7 @@ TextLabel_52.Position = UDim2.new(0.0126851015, 0, 0, 0)
 TextLabel_52.Size = UDim2.new(0.339811683, 0, 0.600000083, 0)
 TextLabel_52.ZIndex = 2
 TextLabel_52.Font = Enum.Font.Fantasy
-TextLabel_52.Text = "AutoTarget:"
+TextLabel_52.Text = "AutoWLTarget:"
 TextLabel_52.TextColor3 = Color3.fromRGB(255, 255, 255)
 TextLabel_52.TextScaled = true
 TextLabel_52.TextSize = 21.000
@@ -3961,243 +3961,293 @@ TextButton_31.TextScaled = true
 TextButton_31.TextSize = 19.000
 TextButton_31.TextWrapped = true
 
-local isRunning = false
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
 local connections = {}
 local whitelist = {}
 local connectedPlayers = {}
 local addedTargets = {}
+local teleportedKunais = {}
+local filename = "HunterHub v5.1.0 Settings.txt"
 local TweenService = game:GetService("TweenService")
+local VariableTable = {}
+local FunctionTable = {}
 
-local function resetConnections()
-	for _, connection in ipairs(connections) do
-		connection:Disconnect()
-	end
-	connections = {}
-	addedTargets = {}
-end
-
-local function initializeScript()
-	local player = game.Players.LocalPlayer
-
-	local function addTarget(targetName)
-		if addedTargets[targetName] or whitelist[targetName] then return end
-		if targetName == player.Name then return end
-
-		addedTargets[targetName] = true
-		game.StarterGui:SetCore("ChatMakeSystemMessage", {
-			Text = "{System} " .. targetName .. " added to the SoftTarget",
-			Color = Color3.fromRGB(0, 255, 0),
-			Font = Enum.Font.Merriweather,
-			FontSize = Enum.FontSize.Size24
-		})
-	end
-
-	local function removeTarget(targetName)
-		addedTargets[targetName] = nil
-	end
-
-	local function onToolTouch(hit)
-		if not isRunning then return end
-
-		local tool = nil
-		local attacker = nil
-
-		if hit.Name == "Sword" then
-			tool = hit
-		elseif hit.Name == "ThrownKunai" then
-			local creator = hit:FindFirstChild("creator")
-			if creator and creator.Value then
-				attacker = creator.Value
-			end
-		else
-			tool = hit.Parent
-			while tool and not tool:IsA("Tool") do
-				tool = tool.Parent
-			end
-		end
-
-		if tool and tool.Name == "Sword" then
-			attacker = game:GetService("Players"):GetPlayerFromCharacter(tool.Parent)
-		end
-
-		if attacker and not whitelist[attacker.Name] then
-			addTarget(attacker.Name)
-		end
-	end
-
-	local function onCharacterAdded(character)
-		for _, part in pairs(character:GetChildren()) do
-			if part:IsA("BasePart") then
-				table.insert(connections, part.Touched:Connect(onToolTouch))
-			end
-		end
-	end
-
-	table.insert(connections, player.CharacterAdded:Connect(onCharacterAdded))
-
-	if player.Character then
-		onCharacterAdded(player.Character)
-	end
-
-	local function teleportKunaiToTarget(thrownKunai, targetName)
-		local targetPlayer = game.Players:FindFirstChild(targetName)
-		if targetPlayer and targetPlayer.Character and not whitelist[targetName] then
-			local targetHead = targetPlayer.Character:FindFirstChild("Head")
-			if targetHead then
-				thrownKunai.CanCollide = false
-
-                local tweenInfo = TweenInfo.new(0.001, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-				local targetCFrame = targetHead.CFrame
-				local tween = TweenService:Create(thrownKunai, tweenInfo, {CFrame = targetCFrame})
-				tween:Play()
-
-                game.Debris:AddItem(thrownKunai, 1)
+TextButton_31.MouseButton1Click:Connect(function()
+    if not VariableTable['AutoWLTarget'] then
+        VariableTable['AutoWLTarget'] = true
+        TextButton_31.Text = "On"
+        TextButton_31.TextColor3 = Color3.fromRGB(0, 255, 0)
+        function resetConnections()
+            for _, connection in ipairs(connections) do
+                connection:Disconnect()
+            end
+            connections = {}
+            addedTargets = {}
+        end
+        function addTarget(targetName)
+            if addedTargets[targetName] or whitelist[targetName] or targetName == Player.Name then return end
+            addedTargets[targetName] = true
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "Attacker Detected",
+                Text = targetName .. " has been added to SoftTarget.",
+                Duration = 3
+            })
+        end
+        function removeTarget(targetName)
+            addedTargets[targetName] = nil
+        end
+        function whitelistPlayer(playerName)
+            for _, player in ipairs(game.Players:GetPlayers()) do
+                if player.Name:lower():find(playerName:lower()) then
+                    if not whitelist[player.Name] then
+                        whitelist[player.Name] = true
+                        game.StarterGui:SetCore("SendNotification", {
+                            Title = "Player Whitelisted",
+                            Text = player.Name .. " has been whitelisted.",
+                            Duration = 3
+                        })
+                        FunctionTable['SaveSettings']()
+                    end
+                    return
+                end
+            end
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "Player Not Found",
+                Text = "No matching player found for: " .. playerName,
+                Duration = 3
+            })
+        end
+        function unwhitelistPlayer(playerName)
+            for _, player in ipairs(game.Players:GetPlayers()) do
+                if player.Name:lower():find(playerName:lower()) then
+                    if whitelist[player.Name] then
+                        whitelist[player.Name] = nil
+                        game.StarterGui:SetCore("SendNotification", {
+                            Title = "Player Unwhitelisted",
+                            Text = player.Name .. " has been unwhitelisted.",
+                            Duration = 3
+                        })
+                        FunctionTable['SaveSettings']()
+                    end
+                    return
+                end
+            end
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "Player Not Found",
+                Text = "No matching player found for: " .. playerName,
+                Duration = 3
+            })
+        end
+        function onToolTouch(hit)
+            local tool, attacker
+            if hit.Name == "Sword" then
+                tool = hit
+            elseif hit.Name == "ThrownKunai" then
+                local creator = hit:FindFirstChild("creator")
+                if creator and creator.Value then
+                    attacker = creator.Value
+                end
+            else
+                tool = hit.Parent
+                while tool and not tool:IsA("Tool") do
+                    tool = tool.Parent
+                end
+            end
+            if tool and tool.Name == "Sword" then
+                attacker = game:GetService("Players"):GetPlayerFromCharacter(tool.Parent)
+            end
+            if attacker and not whitelist[attacker.Name] then
+                if attacker.Character and attacker.Character:FindFirstChild("ForceField") then
+                    return
+                end
+                addTarget(attacker.Name)
+            end
+        end
+        function onCharacterAdded(character)
+            for _, part in pairs(character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    table.insert(connections, part.Touched:Connect(onToolTouch))
                 end
             end
         end
-    
-
-
-	local function checkKunaiLoop()
-		while isRunning do
-			wait(0.1)
-			for _, kunai in ipairs(workspace:GetChildren()) do
-				if kunai:IsA("BasePart") and kunai.Name == "ThrownKunai" then
-					local creator = kunai:FindFirstChild("creator")
-					if creator and creator.Value == player then
-						for targetName in pairs(addedTargets) do
-							teleportKunaiToTarget(kunai, targetName)
+        function initializeScript()
+            resetConnections()
+            table.insert(connections, Player.CharacterAdded:Connect(onCharacterAdded))
+            if Player.Character then
+                onCharacterAdded(Player.Character)
+            end
+            for _, whitelistPlayer in ipairs(game.Players:GetPlayers()) do
+                    if whitelist[whitelistPlayer.Name] then
+                        onCharacterAdded(whitelistPlayer.Character or whitelistPlayer.CharacterAdded:Wait())
+                    end
+                end
+				function teleportKunaiToTarget(thrownKunai, targetName)
+					local targetPlayer = Players:FindFirstChild(targetName)
+					if targetPlayer and targetPlayer.Character then
+						local targetHead = targetPlayer.Character:FindFirstChild("Head")
+						if targetHead then
+							thrownKunai.CanCollide = false
+							local tweenInfo = TweenInfo.new(0.00001, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+							local targetCFrame = targetHead.CFrame
+							local tween = TweenService:Create(thrownKunai, tweenInfo, {CFrame = targetCFrame})
+							tween:Play()
+							game.Debris:AddItem(thrownKunai, 1)
 						end
 					end
 				end
-			end
-		end
-	end
-
-	coroutine.wrap(checkKunaiLoop)()
-
-	local function checkPlayerHealth()
-		while isRunning do
-			wait(1)
-			for playerName in pairs(addedTargets) do
-				local targetPlayer = game.Players:FindFirstChild(playerName)
-				if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("Humanoid") then
-					removeTarget(playerName)
-				else
-					local humanoid = targetPlayer.Character:FindFirstChild("Humanoid")
-					if humanoid.Health <= 0 then
-						removeTarget(playerName)
-					end
-				end
-			end
-		end
-	end
-
-	coroutine.wrap(checkPlayerHealth)()
-
-	local function fireShurikenLoop()
-		while isRunning do
-			wait(0.1)
-
-			if next(addedTargets) then
-				local Players = game:GetService("Players")
-				local LocalPlayer = Players.LocalPlayer
-				for _, player in ipairs(Players:GetPlayers()) do
-				  local character = player.Character or player.CharacterAdded:Wait()
-				if character and character:FindFirstChild("HumanoidRootPart") then
-				  local head = LocalPlayer.Character:WaitForChild("Head")
-				  local direction = (head.Position - character.HumanoidRootPart.Position).unit
-				  local spawnPosition = head.Position
-						
-						for targetName in pairs(addedTargets) do
-							if not whitelist[targetName] then
-								local args = {
-									[1] = spawnPosition,
-									[2] = direction
-								}
-
-								local shuriken = player.Backpack:FindFirstChild("Shuriken") or character:FindFirstChild("Shuriken")
-								
-								if shuriken then
-								  if shuriken.Parent == player.Backpack then
-								    shuriken.Parent = character
-								  end
-							    
-							    shuriken.HitEvent:FireServer(unpack(args))
-							    
-							    if shuriken.Parent == character then
-							      shuriken.Parent = player.Backpack
-							    end
+				function checkKunaiLoop()
+					while VariableTable['AutoWLTarget'] do
+						wait(0)
+						for _, kunai in ipairs(workspace:GetChildren()) do
+							if kunai:IsA("BasePart") and kunai.Name == "ThrownKunai" then
+								local creator = kunai:FindFirstChild("creator")
+								if creator and creator.Value == Player then
+									for targetName in pairs(addedTargets) do
+										teleportKunaiToTarget(kunai, targetName)
+									end
 								end
 							end
 						end
-				end
-			end
-		end
-	end	
-end
-
-	coroutine.wrap(fireShurikenLoop)()
-end
-
-local function handleWhitelist(newPlayer)
-	if not connectedPlayers[newPlayer.Name] then
-		connectedPlayers[newPlayer.Name] = true
-		newPlayer.Chatted:Connect(function(msg)
-			if string.sub(msg, 1, 6) == ">soft," then
-				local namePart = string.sub(msg, 8)
-				for _, player in pairs(game.Players:GetPlayers()) do
-					if string.find(player.Name:lower(), namePart:lower()) then
-						if not whitelist[player.Name] then
-							whitelist[player.Name] = true
-							game.StarterGui:SetCore("ChatMakeSystemMessage", {
-								Text = "{System} " .. player.Name .. " has been whitelisted.",
-								Color = Color3.fromRGB(0, 255, 0),
-								Font = Enum.Font.Merriweather,
-								FontSize = Enum.FontSize.Size24
-							})
-						end
-						return
 					end
 				end
-				game.StarterGui:SetCore("ChatMakeSystemMessage", {
-					Text = "{System} No player found with name containing: " .. namePart,
-					Color = Color3.fromRGB(255, 0, 0),
-					Font = Enum.Font.Merriweather,
-					FontSize = Enum.FontSize.Size24
-				})
+                function checkPlayerHealth()
+					while VariableTable['AutoWLTarget'] do
+						wait(0.25)
+						for PlayerName in pairs(addedTargets) do
+							local targetPlayer = Players:FindFirstChild(PlayerName)
+							if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("Humanoid") then
+								removeTarget(PlayerName)
+							else
+								local humanoid = targetPlayer.Character:FindFirstChild("Humanoid")
+								if humanoid.Health <= 0 then
+									removeTarget(PlayerName)
+								end
+							end
+						end
+					end
+				end
+                function fireShurikenLoop()
+					while VariableTable['AutoWLTarget'] do
+						wait(0.1)
+						if next(addedTargets) then
+							local head = Player.Character:WaitForChild("Head")
+							for _, targetPlayer in ipairs(Players:GetPlayers()) do
+								local character = targetPlayer.Character or targetPlayer.CharacterAdded:Wait()
+								if character and character:FindFirstChild("HumanoidRootPart") then
+									local direction = (head.Position - character.HumanoidRootPart.Position).unit
+									local spawnPosition = head.Position
+									for targetName in pairs(addedTargets) do
+										if not whitelist[targetName] then
+											local args = {
+												[1] = spawnPosition,
+												[2] = direction
+											}
+											local shuriken = targetPlayer.Backpack:FindFirstChild("Shuriken") or character:FindFirstChild("Shuriken")
+											if shuriken then
+												if shuriken.Parent == targetPlayer.Backpack then
+													shuriken.Parent = character
+												end
+												shuriken.HitEvent:FireServer(unpack(args))
+												if shuriken.Parent == character then
+													shuriken.Parent = targetPlayer.Backpack
+												end
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+            coroutine.wrap(checkKunaiLoop)()
+            coroutine.wrap(checkPlayerHealth)()
+            coroutine.wrap(fireShurikenLoop)()
+        end
+        FunctionTable['SaveSettings'] = function()
+            local httpservice = game:GetService("HttpService")
+            if writefile then
+                local Settings = {}
+                Settings.whitelist = {}
+                for playerName in pairs(whitelist) do
+                    table.insert(Settings.whitelist, playerName)
+                end
+                writefile(filename, httpservice:JSONEncode(Settings))
+            end
+        end
+        FunctionTable['MasterFunc'] = function(Text,UIElement,Save,Loading)
+            if Save == nil then
+                Save = true
+            end
+            if Loading == nil then
+                Loading = false
+            end
+            if UIElement:IsA("TextButton") then
+                if VariableTable[Text] ~= nil and Loading ~= true then
+                    VariableTable[Text] = not VariableTable[Text]
+                end
+                local ButtonTable = FunctionTable['SetButton'](VariableTable[Text])
+                UIElement.TextColor3 = ButtonTable[1]
+                UIElement.Text = ButtonTable[2]
+            elseif UIElement:IsA("TextBox") then
+                if tonumber(UIElement.Text) then
+                    VariableTable[Text] = tonumber(UIElement.Text)
+                else
+                    VariableTable[Text] = UIElement.Text
+                end
+            end
+            if Save then
+                FunctionTable['SaveSettings']()
+            end
+            if FunctionTable.VariableFunctions[Text] then
+                FunctionTable.VariableFunctions[Text]()
+            end
+        end
+        FunctionTable['LoadSettings'] = function()
+            local httpservice = game:GetService("HttpService")
+            if isfile and readfile then
+                local fileExist = isfile(filename)
+                if fileExist then
+                    local Settings = httpservice:JSONDecode(readfile(filename))
+                    for _, playerName in ipairs(Settings.whitelist) do
+                        whitelist[playerName] = true 
+                    end
+                end
+            end
+        end
+        FunctionTable['LoadSettings']()
+        Players.PlayerRemoving:Connect(function(removedPlr)
+            if removedPlr == Players.LocalPlayer then
+                FunctionTable['SaveSettings']()
+            end
+        end)
+        function handleCommands(newPlayer)
+				newPlayer.Chatted:Connect(function(msg)
+					local command, playerName = msg:match("^(%S+)%s*(.*)")
+					if command == ">rsoft" and playerName then
+						unwhitelistPlayer(playerName)
+					elseif command == ">wsoft" and playerName then
+						whitelistPlayer(playerName)
+					end
+				end)
 			end
-		end)
-	end
-end
-
-TextButton_31.MouseButton1Down:Connect(function()
-	isRunning = not isRunning
-	if isRunning then
-		TextButton_31.Text = "On"
-		TextButton_31.TextColor3 = Color3.fromRGB(0, 255, 0)
-		initializeScript()
-	else
-		TextButton_31.Text = "Off"
-		TextButton_31.TextColor3 = Color3.fromRGB(255, 0, 0)
-		resetConnections()
-	end
+			for _, p in pairs(game.Players:GetPlayers()) do
+				handleCommands(p)
+			end
+            game.Players.PlayerAdded:Connect(handleCommands)
+        initializeScript()
+        Player.CharacterAdded:Connect(function()
+            wait(0.5)
+            resetConnections()
+            initializeScript()
+        end)
+    else
+        VariableTable['AutoWLTarget'] = false
+        TextButton_31.Text = "Off"
+        TextButton_31.TextColor3 = Color3.fromRGB(255, 0, 0)
+        resetConnections()
+    end
 end)
-
-game.Players.LocalPlayer.CharacterAdded:Connect(function()
-	wait(0.5)
-	if isRunning then
-		resetConnections()
-		initializeScript()
-	end
-end)
-
-
-for _, p in pairs(game.Players:GetPlayers()) do
-	handleWhitelist(p)
-end
-
-game.Players.PlayerAdded:Connect(handleWhitelist)
 
 TextButton_32.Parent = Frame11_2
 TextButton_32.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
