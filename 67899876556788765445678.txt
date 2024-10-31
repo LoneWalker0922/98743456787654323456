@@ -744,7 +744,7 @@ local lastPosition = nil
 local isScriptActive = false
 local connections = {}
 
-local function respawnCharacter()
+function respawnCharacter()
     if player.Character then
         lastPosition = player.Character.PrimaryPart.Position
         player.Character:Destroy()
@@ -774,7 +774,7 @@ local function connectDiedEvent()
     end
 end
 
-local function onCharacterAdded(character)
+function onCharacterAdded(character)
     connectDiedEvent()
     character:WaitForChild("HumanoidRootPart")
     if lastPosition then
@@ -783,7 +783,7 @@ local function onCharacterAdded(character)
     end
 end
 
-local function updateButton()
+function updateButton()
     if isScriptActive then
         TextButton_6.Text = "On"
         TextButton_6.TextColor3 = Color3.fromRGB(0, 255, 0)
@@ -793,7 +793,7 @@ local function updateButton()
     end
 end
 
-local function toggleScript()
+function toggleScript()
     isScriptActive = not isScriptActive
     if isScriptActive then
         table.insert(connections, player.CharacterAdded:Connect(onCharacterAdded))
@@ -851,7 +851,7 @@ TextButton_7.TextScaled = true
 TextButton_7.TextSize = 19.000
 TextButton_7.TextWrapped = true
 
-local function toggleFreeze(character, freeze)
+function toggleFreeze(character, freeze)
     for i, v in pairs(character:GetChildren()) do
         if v:IsA("BasePart") then
             v.Anchored = freeze
@@ -863,7 +863,7 @@ local player = game.Players.LocalPlayer
 local Character = player.Character or player.CharacterAdded:Wait()
 local VariableTable = {Freeze = false}
 
-local function toggleFreezeState()
+function toggleFreezeState()
     VariableTable['Freeze'] = not VariableTable['Freeze']
     toggleFreeze(Character, VariableTable['Freeze'])
     if VariableTable['Freeze'] then
@@ -919,7 +919,7 @@ local Players = game:GetService("Players")
 local VariableTable = { Noclip = false }
 local NoclipHandler = nil
 
-local function NoclipLoop()
+function NoclipLoop()
     local character = Players.LocalPlayer.Character
     if character then
         for _, v in pairs(character:GetDescendants()) do
@@ -930,7 +930,7 @@ local function NoclipLoop()
     end
 end
 
-local function toggleNoclipState()
+function toggleNoclipState()
     VariableTable['Noclip'] = not VariableTable['Noclip']
     if VariableTable['Noclip'] then
         NoclipHandler = RunService.Heartbeat:Connect(NoclipLoop)
@@ -1007,21 +1007,21 @@ local RunService = game:GetService("RunService")
 local VariableTable = {AutoSword = false}
 local toolConnection
 
-local function equipTool(toolName)
+function equipTool(toolName)
     local tool = Players.LocalPlayer.Backpack:FindFirstChild(toolName)
     if tool then
         tool.Parent = Players.LocalPlayer.Character
     end
 end
 
-local function unequipTool(toolName)
+function unequipTool(toolName)
     local tool = Players.LocalPlayer.Character:FindFirstChild(toolName)
     if tool then
         tool.Parent = Players.LocalPlayer.Backpack
     end
 end
 
-local function toolLoop()
+function toolLoop()
     if Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("ForceField") then
         for i = 1, 4 do
             if not VariableTable['AutoSword'] then return end
@@ -1039,7 +1039,7 @@ local function toolLoop()
     end
 end
 
-local function toggleToolState()
+function toggleToolState()
     VariableTable['AutoSword'] = not VariableTable['AutoSword']
     if VariableTable['AutoSword'] then
         toolConnection = RunService.Heartbeat:Connect(toolLoop)
@@ -1108,7 +1108,7 @@ local safeSpotPosition = Vector3.new(124.430862, 999999.652863, 471.85906)
 
 local lastPosition
 
-local function moveToSafeSpot()
+function moveToSafeSpot()
     local humanoidRootPart = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     if humanoidRootPart then
         lastPosition = humanoidRootPart.Position
@@ -1125,7 +1125,7 @@ local function moveToSafeSpot()
     end
 end
 
-local function moveToStoredPosition()
+function moveToStoredPosition()
     if lastPosition then
         local humanoidRootPart = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if humanoidRootPart then
@@ -1140,7 +1140,7 @@ local function moveToStoredPosition()
     end
 end
 
-local function toggleMovement()
+function toggleMovement()
     if TextButton_10.Text == "Off" then
         moveToSafeSpot()
     else
@@ -1197,7 +1197,7 @@ local thirdAnimationId = "rbxassetid://1029863696"
 
 local AnimationsEnabled = false
 
-local function playAnimations()
+function playAnimations()
     local player = game.Players.LocalPlayer
     local character = player.Character or player.CharacterAdded:Wait()
 
@@ -1287,7 +1287,7 @@ TextButton_12.TextWrapped = true
 
 local TeleportEnabled = false
 
-local function findPartByName(parent, name)
+function findPartByName(parent, name)
     for _, child in ipairs(parent:GetDescendants()) do
         if child.Name == name and child:IsA("BasePart") then
             return child
@@ -1296,7 +1296,7 @@ local function findPartByName(parent, name)
     return nil
 end
 
-local function teleportToSeat()
+function teleportToSeat()
     local seat = findPartByName(game.Workspace, "Seat")
     
     if seat then
@@ -1317,7 +1317,7 @@ local function teleportToSeat()
     end
 end
 
-local function makePlayerJump()
+function makePlayerJump()
     local player = game.Players.LocalPlayer
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -1457,12 +1457,12 @@ local isAutoTrainOn = false
 local trainRate = tonumber(TextBox.Text)
 local trainAmount = tonumber(TextBox_2.Text)
 
-local function updateValues()
+function updateValues()
     trainRate = tonumber(TextBox.Text) or trainRate
     trainAmount = tonumber(TextBox_2.Text) or trainAmount
 end
 
-local function autoTrain()
+function autoTrain()
     while isAutoTrainOn do
         addPowerEvent:FireServer("FromTraining", trainAmount)
         wait(trainRate)
@@ -7235,48 +7235,24 @@ coroutine.wrap(PIQB_fake_script)()
 local function BNZZJ_fake_script() -- fps.LocalScript 
 	local script = Instance.new('LocalScript', fps)
 
-	local function waitForChildWithTimeout(parent, childName, timeout)
-		local startTime = tick()
-		while (tick() - startTime) < timeout do
-			local child = parent:FindFirstChild(childName)
-			if child then
-				return child
-			end
-			wait(0.1)
+	local Players = game:GetService("Players")
+	local player = Players.LocalPlayer
+
+	local textLabel = script.Parent
+
+	local frameCount = 0
+	local elapsedTime = 0
+
+	game:GetService("RunService").RenderStepped:Connect(function(deltaTime)
+		frameCount = frameCount + 1
+		elapsedTime = elapsedTime + deltaTime
+
+		if elapsedTime >= 1 then
+			textLabel.Text = frameCount
+			frameCount = 0
+			elapsedTime = 0
 		end
-		return nil
-	end
-	
-	local player = game.Players.LocalPlayer
-	local gui = player:WaitForChild("PlayerGui"):WaitForChild("HunterHub")
-	
-	local hhFrame = waitForChildWithTimeout(gui, "HHFrame", 5)
-	if not hhFrame then return end
-	
-	local midBar = waitForChildWithTimeout(hhFrame, "MidBar", 5)
-	if not midBar then return end
-	
-	local mainFrame = waitForChildWithTimeout(midBar, "MainFrame", 5)
-	if not mainFrame then return end
-	
-	local homeTab = waitForChildWithTimeout(mainFrame, "HomeTab", 5)
-	if not homeTab then return end
-	
-	local frame5 = waitForChildWithTimeout(homeTab, "Frame5", 5)
-	if not frame5 then return end
-	
-	local fpsLabel = waitForChildWithTimeout(frame5, "fps", 5)
-	if not fpsLabel then return end
-	
-	local function updateFPS()
-		while true do
-			local fpsValue = 1 / game:GetService("RunService").RenderStepped:Wait()
-			fpsLabel.Text = tostring(math.floor(fpsValue))
-			wait(1)
-		end
-	end
-	
-	spawn(updateFPS)
+	end)
 end
 coroutine.wrap(BNZZJ_fake_script)()
 local function RAYOUB_fake_script() -- ping.LocalScript 
