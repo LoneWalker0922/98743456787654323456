@@ -4007,6 +4007,8 @@ TextButton_31.MouseButton1Click:Connect(function()
                             Text = player.Name .. " has been whitelisted.",
                             Duration = 3
                         })
+ 	                resetConnections()
+        	        initializeScript()
                         FunctionTable['SaveSettings']()
                     end
                     return
@@ -4028,6 +4030,8 @@ TextButton_31.MouseButton1Click:Connect(function()
                             Text = player.Name .. " has been unwhitelisted.",
                             Duration = 3
                         })
+ 	                resetConnections()
+        	        initializeScript()
                         FunctionTable['SaveSettings']()
                     end
                     return
