@@ -744,7 +744,7 @@ local lastPosition = nil
 local isScriptActive = false
 local connections = {}
 
-function respawnCharacter()
+local function respawnCharacter()
     if player.Character then
         lastPosition = player.Character.PrimaryPart.Position
         player.Character:Destroy()
@@ -774,7 +774,7 @@ local function connectDiedEvent()
     end
 end
 
-function onCharacterAdded(character)
+local function onCharacterAdded(character)
     connectDiedEvent()
     character:WaitForChild("HumanoidRootPart")
     if lastPosition then
@@ -783,7 +783,7 @@ function onCharacterAdded(character)
     end
 end
 
-function updateButton()
+local function updateButton()
     if isScriptActive then
         TextButton_6.Text = "On"
         TextButton_6.TextColor3 = Color3.fromRGB(0, 255, 0)
@@ -793,7 +793,7 @@ function updateButton()
     end
 end
 
-function toggleScript()
+local function toggleScript()
     isScriptActive = not isScriptActive
     if isScriptActive then
         table.insert(connections, player.CharacterAdded:Connect(onCharacterAdded))
@@ -851,7 +851,7 @@ TextButton_7.TextScaled = true
 TextButton_7.TextSize = 19.000
 TextButton_7.TextWrapped = true
 
-function toggleFreeze(character, freeze)
+local function toggleFreeze(character, freeze)
     for i, v in pairs(character:GetChildren()) do
         if v:IsA("BasePart") then
             v.Anchored = freeze
@@ -863,7 +863,7 @@ local player = game.Players.LocalPlayer
 local Character = player.Character or player.CharacterAdded:Wait()
 local VariableTable = {Freeze = false}
 
-function toggleFreezeState()
+local function toggleFreezeState()
     VariableTable['Freeze'] = not VariableTable['Freeze']
     toggleFreeze(Character, VariableTable['Freeze'])
     if VariableTable['Freeze'] then
@@ -919,7 +919,7 @@ local Players = game:GetService("Players")
 local VariableTable = { Noclip = false }
 local NoclipHandler = nil
 
-function NoclipLoop()
+local function NoclipLoop()
     local character = Players.LocalPlayer.Character
     if character then
         for _, v in pairs(character:GetDescendants()) do
@@ -930,7 +930,7 @@ function NoclipLoop()
     end
 end
 
-function toggleNoclipState()
+local function toggleNoclipState()
     VariableTable['Noclip'] = not VariableTable['Noclip']
     if VariableTable['Noclip'] then
         NoclipHandler = RunService.Heartbeat:Connect(NoclipLoop)
@@ -1007,21 +1007,21 @@ local RunService = game:GetService("RunService")
 local VariableTable = {AutoSword = false}
 local toolConnection
 
-function equipTool(toolName)
+local function equipTool(toolName)
     local tool = Players.LocalPlayer.Backpack:FindFirstChild(toolName)
     if tool then
         tool.Parent = Players.LocalPlayer.Character
     end
 end
 
-function unequipTool(toolName)
+local function unequipTool(toolName)
     local tool = Players.LocalPlayer.Character:FindFirstChild(toolName)
     if tool then
         tool.Parent = Players.LocalPlayer.Backpack
     end
 end
 
-function toolLoop()
+local function toolLoop()
     if Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("ForceField") then
         for i = 1, 4 do
             if not VariableTable['AutoSword'] then return end
@@ -1039,7 +1039,7 @@ function toolLoop()
     end
 end
 
-function toggleToolState()
+local function toggleToolState()
     VariableTable['AutoSword'] = not VariableTable['AutoSword']
     if VariableTable['AutoSword'] then
         toolConnection = RunService.Heartbeat:Connect(toolLoop)
@@ -1457,12 +1457,12 @@ local isAutoTrainOn = false
 local trainRate = tonumber(TextBox.Text)
 local trainAmount = tonumber(TextBox_2.Text)
 
-function updateValues()
+local function updateValues()
     trainRate = tonumber(TextBox.Text) or trainRate
     trainAmount = tonumber(TextBox_2.Text) or trainAmount
 end
 
-function autoTrain()
+local function autoTrain()
     while isAutoTrainOn do
         addPowerEvent:FireServer("FromTraining", trainAmount)
         wait(trainRate)
@@ -6434,7 +6434,7 @@ TextButton_66.MouseButton1Down:connect(function()
         TextButton_66.Text = "On"
         TextButton_66.TextColor3 = Color3.fromRGB(0, 255, 0)
         
-        local function playSounds(interval)
+        function playSounds(interval)
             local function findAndPlaySounds()
                 for _, sound in ipairs(game:GetDescendants()) do
                     if sound:IsA("Sound") then
